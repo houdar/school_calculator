@@ -2,17 +2,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import { BookOpenIcon, GraduationCapIcon } from 'lucide-react-native';
-import { useColorScheme } from 'react-native';
+
 
 export default function HomeScreen() {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-
   return (
     <View style={[styles.container]}>
       {/* Title */}
       <Text style={[styles.title]}>
-        welcome toti 
+      اختر المستوى       📚
       </Text>
 
       {/* Buttons */}
