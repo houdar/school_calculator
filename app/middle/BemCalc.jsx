@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
   FlatList,
+  StyleSheet, 
   TouchableOpacity,
   Alert,
 } from 'react-native';
@@ -21,31 +21,48 @@ export default function BemCalcScreen() {
   const [grades, setGrades] = useState({});
   const [optionalSelected, setOptionalSelected] = useState({});
   const [bemAverage, setBemAverage] = useState('0.00');
+  const [subjectMultipliers, setSubjectMultipliers] = useState(
+    Object.fromEntries(bemStream.subjects.map((subject) => [subject.name, subject.multiplier]))
+  );
 
   // Update the grade in state
   const handleGradeChange = (subjectName, value) => {
     setGrades((prev) => ({ ...prev, [subjectName]: value }));
   };
 
-  // Validate input and update or reset if invalid
+  // Validate and update grade input
   const handleGradeInput = (subjectName, inputValue) => {
-    // Allow clearing the input
     if (inputValue === '') {
       handleGradeChange(subjectName, '');
       return;
     }
 
-    // Convert to number
     const numericValue = Number(inputValue);
-
-    // Check if not a number or out of range
     if (isNaN(numericValue) || numericValue < 0 || numericValue > 20) {
       Alert.alert('خطأ', 'الرجاء إدخال قيمة بين 0 و 20');
-      // Reset the input
       handleGradeChange(subjectName, '');
     } else {
-      // Valid input
       handleGradeChange(subjectName, inputValue);
+    }
+  };
+
+  // Validate and update multiplier input
+  const handleMultiplierInput = (subjectName, inputValue) => {
+    if (inputValue === '') {
+      setSubjectMultipliers((prev) => ({ ...prev, [subjectName]: '' }));
+      return;
+    }
+
+    const numericValue = Number(inputValue);
+    if (isNaN(numericValue) || numericValue <= 0) {
+      Alert.alert('خطأ', 'الرجاء إدخال معامل صحيح أكبر من 0');
+      setSubjectMultipliers((prev) => ({
+        ...prev,
+        [subjectName]:
+          bemStream.subjects.find((s) => s.name === subjectName)?.multiplier || 1,
+      }));
+    } else {
+      setSubjectMultipliers((prev) => ({ ...prev, [subjectName]: numericValue }));
     }
   };
 
@@ -53,7 +70,6 @@ export default function BemCalcScreen() {
   const handleToggleOptional = (subjectName, value) => {
     setOptionalSelected((prev) => ({ ...prev, [subjectName]: value }));
     if (!value) {
-      // When unchecked, clear its grade.
       setGrades((prev) => ({ ...prev, [subjectName]: '' }));
     }
   };
@@ -65,40 +81,35 @@ export default function BemCalcScreen() {
 
     // Loop through all subjects
     bemStream.subjects.forEach((subject, index) => {
-      // Check if subject is optional
       const isOptional = index >= bemStream.subjects.length - 3;
-      // If optional, must be selected to count
       const enabled = isOptional ? optionalSelected[subject.name] : true;
 
       if (enabled) {
-        // Parse grade from state, default to 0 if empty
         const gradeValue = Number(grades[subject.name]) || 0;
-        totalSum += gradeValue * subject.multiplier;
-        totalMultiplier += subject.multiplier;
+        const multiplier = Number(subjectMultipliers[subject.name]) || subject.multiplier;
+        totalSum += gradeValue * multiplier;
+        totalMultiplier += multiplier;
       }
     });
 
-    // Avoid division by zero
     if (totalMultiplier === 0) {
       setBemAverage('0.00');
       return;
     }
 
     const average = totalSum / totalMultiplier;
-    // Format to two decimals
     setBemAverage(average.toFixed(2));
   };
 
   const subjects = bemStream.subjects;
 
-  // Renders each subject row (last three optional)
+  // Render each subject row
   const renderSubject = ({ item, index }) => {
     const isOptional = index >= subjects.length - 3;
     const enabled = isOptional ? optionalSelected[item.name] : true;
 
     return (
       <View style={[styles.card, isOptional && !enabled && styles.disabledCard]}>
-        {/* Optional checkbox in top right for optional modules */}
         {isOptional && (
           <View style={styles.optionalCheckboxContainer}>
             <Checkbox
@@ -120,7 +131,14 @@ export default function BemCalcScreen() {
             onChangeText={(value) => handleGradeInput(item.name, value)}
             editable={enabled}
           />
-          <Text style={styles.multiplier}>x{item.multiplier}</Text>
+          <TextInput
+            style={[styles.multiplierInput, isOptional && !enabled && styles.disabledInput]}
+            placeholder="معامل"
+            placeholderTextColor="#AAA"
+            keyboardType="numeric"
+            value={String(subjectMultipliers[item.name] || '')}
+            onChangeText={(value) => handleMultiplierInput(item.name, value)}
+          />
         </View>
       </View>
     );
@@ -128,29 +146,21 @@ export default function BemCalcScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Screen Title */}
       <Text style={styles.title}>{bemStream.name}</Text>
-
-      {/* List of Subjects */}
       <FlatList
         data={subjects}
         keyExtractor={(subject) => subject.name}
         renderItem={renderSubject}
         contentContainerStyle={styles.listContainer}
       />
-
-      {/* Footer: Display & Calculate */}
       <View style={styles.footerContainer}>
-        {/* Display the final BEM average */}
+        <TouchableOpacity style={styles.calculateButton} onPress={handleCalculateBem}>
+          <Text style={styles.calculateButtonText}>حساب معدل البكالوريا</Text>
+        </TouchableOpacity>
         <View style={styles.averageCard}>
           <Text style={styles.averageTitle}>معدل البكالوريا</Text>
           <Text style={styles.averageValue}>{bemAverage}</Text>
         </View>
-
-        {/* Button to trigger calculation */}
-        <TouchableOpacity style={styles.calculateButton} onPress={handleCalculateBem}>
-          <Text style={styles.calculateButtonText}>حساب معدل البكالوريا</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -288,8 +298,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
+    margin:16 ,
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+    
   },
   calculateButtonText: {
     color: '#fff',
