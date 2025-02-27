@@ -243,7 +243,7 @@ export default function BemCalcScreen() {
   }, []);
 
   // Validate and update multiplier input
-  const handleMultiplierInput = useCallback((subjectName, inputValue) => {
+    const handleMultiplierInput = useCallback((subjectName, inputValue) => {
     if (inputValue === '') {
       dispatch({ type: 'SET_MULTIPLIER', subject: subjectName, value: '' });
       return;
@@ -252,8 +252,12 @@ export default function BemCalcScreen() {
     const numericValue = Number(inputValue);
     if (isNaN(numericValue) || numericValue <= 0) {
       Alert.alert('خطأ', 'الرجاء إدخال معامل صحيح أكبر من 0');
-      const defaultMultiplier = bemStream.subjects.find(s => s.name === subjectName)?.multiplier || 1;
-      dispatch({ type: 'SET_MULTIPLIER', subject: subjectName, value: defaultMultiplier });
+      // Don't reset to default immediately - this was causing values to revert
+      // Only set default if completely invalid
+      if (isNaN(numericValue)) {
+        const defaultMultiplier = bemStream.subjects.find(s => s.name === subjectName)?.multiplier || 1;
+        dispatch({ type: 'SET_MULTIPLIER', subject: subjectName, value: defaultMultiplier });
+      }
     } else {
       dispatch({ type: 'SET_MULTIPLIER', subject: subjectName, value: numericValue });
     }
@@ -263,7 +267,6 @@ export default function BemCalcScreen() {
   const handleToggleOptional = useCallback((subjectName, value) => {
     dispatch({ type: 'TOGGLE_OPTIONAL', subject: subjectName, value });
   }, []);
-
   // Calculate the BEM final mark
   const handleCalculateBem = useCallback(() => {
     let totalSum = 0;
@@ -349,7 +352,7 @@ export default function BemCalcScreen() {
   const getGradeColor = useCallback((grade) => {
     const numGrade = Number(grade);
     if (isNaN(numGrade)) return '#333';
-    if (numGrade >= 16) return '#4CAF50'; // Excellent - Green
+    if (numGrade >= 15) return '#4CAF50'; // Excellent - Green
     if (numGrade >= 14) return '#8BC34A'; // Very Good - Light Green
     if (numGrade >= 12) return '#FFC107'; // Good - Yellow
     if (numGrade >= 10) return '#FF9800'; // Pass - Orange
@@ -365,35 +368,35 @@ export default function BemCalcScreen() {
         color: '#4CAF50', 
         message: 'ممتاز! تهانينا!',
         background: 'rgba(76, 175, 80, 0.1)',
-        icon: '🏆'
+      
       };
     } else if (numAverage >= 14) {
       return { 
         color: '#8BC34A', 
         message: 'جيد جدا!',
         background: 'rgba(139, 195, 74, 0.1)',
-        icon: '🌟'
+        
       };
     } else if (numAverage >= 12) {
       return { 
         color: '#FFC107', 
         message: 'جيد',
         background: 'rgba(255, 193, 7, 0.1)',
-        icon: '👍'
+       
       };
     } else if (numAverage >= 10) {
       return { 
         color: '#FF9800', 
         message: 'مقبول',
         background: 'rgba(255, 152, 0, 0.1)',
-        icon: '✓'
+     
       };
     } else {
       return { 
         color: '#F44336', 
         message: 'تحتاج الى مزيد من الجهد',
         background: 'rgba(244, 67, 54, 0.1)',
-        icon: '📚'
+        
       };
     }
   }, [bemAverage]);
@@ -418,7 +421,9 @@ export default function BemCalcScreen() {
     const enabled = isOptional ? optionalSelected[item.name] : true;
     const gradeValue = grades[item.name] || '';
     const gradeColor = getGradeColor(gradeValue);
-    const multiplier = subjectMultipliers[item.name] || item.multiplier;
+    const multiplier = subjectMultipliers[item.name] !== undefined ? 
+    subjectMultipliers[item.name] : 
+    item.multiplier;
     
     return (
       <View style={[
@@ -469,20 +474,23 @@ export default function BemCalcScreen() {
           </View>
           
           <View style={styles.multiplierContainer}>
-            <Text style={styles.multiplierLabel}>المعامل</Text>
+          
             <View style={styles.multiplierInputWrapper}>
-              <TextInput
-                style={[
-                  styles.multiplierInput, 
-                  isOptional && !enabled && styles.disabledInput
-                ]}
-                keyboardType="numeric"
-                value={String(multiplier)}
-                onChangeText={(value) => handleMultiplierInput(item.name, value)}
-                accessibilityLabel={`معامل ${item.name}`}
-                maxLength={2}
-              />
-              <Text style={styles.editHint}>تعديل</Text>
+            <TextInput
+  style={[
+    styles.multiplierInput, 
+    isOptional && !enabled && styles.disabledInput,
+    // Add conditional styling for the multiplier (similar to grade input)
+    multiplier && { fontWeight: 'bold' }
+  ]}
+  keyboardType="numeric"
+  value={String(multiplier)}
+  onChangeText={(value) => handleMultiplierInput(item.name, value)}
+  accessibilityLabel={`معامل ${item.name}`}
+  maxLength={2}  // Changed from 1 to 2 to allow double-digit multipliers
+  editable={enabled}  // Added this to disable when subject is disabled
+/>
+              
             </View>
           </View>
         </View>
@@ -513,7 +521,7 @@ export default function BemCalcScreen() {
   // Render optional subjects
   const renderOptionalSubjects = useCallback(() => (
     <>
-      {renderSectionHeader('المواد الاختيارية (اختر ما تريد)')}
+      {renderSectionHeader('المواد الاختيارية')}
       {groupedSubjects.optionalSubjects.map((subject, index) => (
         <View key={subject.name}>
           {renderSubject({ 
@@ -826,17 +834,19 @@ const styles = StyleSheet.create({
   multiplierInputWrapper: {
     position: 'relative',
   },
-  multiplierInput: {
-    width: 50,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: '#7B1FA2',
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    paddingHorizontal: 4,
-  },
+multiplierInput: {
+  width: 50,
+  height: 40,
+  borderRadius: 8,
+  backgroundColor: '#F5F5F5',  // Changed from #7B1FA2 to match input
+  borderWidth: 1,              // Added border
+  borderColor: '#E0E0E0',      // Added border color
+  color: '#333',               // Changed from #fff to match input
+  fontSize: 16,
+  fontWeight: 'bold',
+  textAlign: 'center',
+  paddingHorizontal: 4,
+},
   editHint: {
     position: 'absolute',
     bottom: -16,

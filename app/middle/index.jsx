@@ -18,7 +18,7 @@ export default function MiddleSchoolCalculator() {
             <CardHeader style={styles.cardHeader}>
               <Image
                 style={styles.image}
-                source={require('../../assets/images/about_img_1.png')}
+                source={require('../../assets/images/module.png')}
               />
               <View style={styles.textContainer}>
                 <CardTitle style={styles.text}>معدل المادة</CardTitle>
@@ -38,10 +38,30 @@ export default function MiddleSchoolCalculator() {
             <CardHeader style={styles.cardHeader}>
               <Image
                 style={styles.image}
-                source={require('../../assets/images/about_img_1.png')}
+                source={require('../../assets/images/stream.png')}
               />
               <View style={styles.textContainer}>
                 <CardTitle style={styles.text}>المعدل الفصلي</CardTitle>
+                <CardDescription style={styles.text}>
+                  حساب المعدل الفصلي
+                </CardDescription>
+              </View>
+            </CardHeader>
+          </TouchableOpacity>
+        </Link>
+      </Card>
+      
+    
+      <Card style={styles.card}>
+        <Link href="/middle/Year" asChild>
+          <TouchableOpacity style={styles.button}>
+            <CardHeader style={styles.cardHeader}>
+              <Image
+                style={styles.image}
+                source={require('../../assets/images/year.png')}
+              />
+              <View style={styles.textContainer}>
+                <CardTitle style={styles.text}>المعدل السنوي</CardTitle>
                 <CardDescription style={styles.text}>
                   حساب المعدل الفصلي
                 </CardDescription>
@@ -57,7 +77,7 @@ export default function MiddleSchoolCalculator() {
             <CardHeader style={styles.cardHeader}>
               <Image
                 style={styles.image}
-                source={require('../../assets/images/about_img_1.png')}
+                source={require('../../assets/images/bem.png')}
               />
               <View style={styles.textContainer}>
                 <CardTitle style={styles.text}>معدل البيام</CardTitle>
@@ -86,8 +106,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end', 
   },
   image: {
-    width: 60, 
-    height: 60,
+    width:90, 
+    height: 70,
     borderRadius: 8,
     marginRight: 10, 
   },

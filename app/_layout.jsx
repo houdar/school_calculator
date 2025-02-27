@@ -5,6 +5,7 @@ import * as React from 'react';
 import { NAV_THEME } from '~/lib/constants';
 import { PortalHost } from '@rn-primitives/portal';
 export { ErrorBoundary } from 'expo-router';
+import Toast from "react-native-toast-message"
 
 const LIGHT_THEME = {
   ...DefaultTheme,
@@ -20,6 +21,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ title: "Niveau" }} />
         <Stack.Screen name="middle" options={{ title: "Middle School" }} />
         <Stack.Screen name="high" options={{ title: "High School" }} />
+        <Toast/>
       </Stack>
 
       <PortalHost />
