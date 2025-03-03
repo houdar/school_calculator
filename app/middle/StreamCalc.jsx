@@ -228,111 +228,160 @@ export default function StreamCalculation() {
   };
 
   // Render a subject card with checkbox for the second test
-  const renderSubjectCard = (subject, index, subjectType) => {
-    const isOptional = subjectType === 'optional';
-    const isSelected = isOptional ? selectedOptionals[index] : true;
-    
-    return (
-      <View key={index} style={styles.subjectCard}>
-        <View style={styles.subjectHeader}>
-          {isOptional && (
-            <TouchableOpacity 
-              style={[styles.checkbox, isSelected && styles.checkboxChecked]}
-              onPress={() => toggleOptionalSelection(index)}
-            >
-              {isSelected && <MaterialIcons name="check" size={18} color="white" />}
-            </TouchableOpacity>
-          )}
-          <Text style={styles.subjectName}>{subject.name}</Text>
+ // Inside your component, update the renderSubjectCard function:
+
+const renderSubjectCard = (subject, index, subjectType) => {
+  const isOptional = subjectType === 'optional';
+  const isSelected = isOptional ? selectedOptionals[index] : true;
+  
+  return (
+    <View 
+      key={index} 
+      style={[
+        styles.subjectCard,
+        isOptional && !isSelected && styles.disabledCard
+      ]}
+    >
+      <View style={styles.subjectHeader}>
+        {isOptional && (
+          <TouchableOpacity 
+            style={[styles.checkbox, isSelected && styles.checkboxChecked]}
+            onPress={() => toggleOptionalSelection(index)}
+          >
+            {isSelected && <MaterialIcons name="check" size={18} color="white" />}
+          </TouchableOpacity>
+        )}
+        <Text style={[
+          styles.subjectName,
+          isOptional && !isSelected && styles.disabledText
+        ]}>
+          {subject.name}
+        </Text>
+      </View>
+      
+      <View style={[
+        styles.subjectDetails,
+        isOptional && !isSelected && styles.disabledDetails
+      ]}>
+        {/* Multiplier */}
+        <View style={styles.inputGroup}>
+          <Text style={[
+            styles.inputLabel,
+            isOptional && !isSelected && styles.disabledText
+          ]}>المعامل</Text>
+          <TextInput
+            style={[
+              styles.multiplierInput,
+              isOptional && !isSelected && styles.disabledInput
+            ]}
+            keyboardType="numeric"
+            value={subject.multiplier?.toString() || ''}
+            onChangeText={(value) => handleScoreChange(index, 'multiplier', value, subjectType)}
+            editable={isSelected}
+          />
         </View>
         
-        <View style={styles.subjectDetails}>
-          {/* Multiplier */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>المعامل</Text>
-            <TextInput
-              style={styles.multiplierInput}
-              keyboardType="numeric"
-              value={subject.multiplier?.toString() || ''}
-              onChangeText={(value) => handleScoreChange(index, 'multiplier', value, subjectType)}
-              editable={isSelected}
-            />
-          </View>
-          
-           {/* Continuous Assessment */}
-           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>التقويم المستمر</Text>
-            <TextInput
-              style={[styles.scoreInput, { borderColor: getScoreColor(subject.assessment) }]}
-              keyboardType="numeric"
-              value={subject.assessment?.toString() || ''}
-              onChangeText={(value) => handleScoreChange(index, 'assessment', value, subjectType)}
-              editable={isSelected}
-            />
-            {isSelected && getStatusIcon(subject.assessment)}
-          </View>
-          
-          {/* Second Test with checkbox */}
-          <View style={styles.inputGroup}>
-            <View style={styles.secondTestLabelContainer}>
-              <TouchableOpacity 
-                style={[styles.smallCheckbox, subject.hasTwoTests && styles.smallCheckboxChecked]}
-                onPress={() => isSelected && toggleSecondTest(index, subjectType)}
-                disabled={!isSelected}
-              >
-                {subject.hasTwoTests && <MaterialIcons name="check" size={12} color="white" />}
-              </TouchableOpacity>
-              <Text style={[
-                styles.inputLabel,
-                !subject.hasTwoTests && styles.disabledLabel
-              ]}>
-                الفرض الثاني
-              </Text>
-            </View>
-            <TextInput
-              style={[
-                styles.scoreInput, 
-                { borderColor: getScoreColor(subject.test2) },
-                !subject.hasTwoTests && styles.disabledInput
-              ]}
-              keyboardType="numeric"
-              value={subject.test2?.toString() || ''}
-              onChangeText={(value) => handleScoreChange(index, 'test2', value, subjectType)}
-              editable={isSelected && subject.hasTwoTests}
-            />
-            {isSelected && subject.hasTwoTests && getStatusIcon(subject.test2)}
-          </View>
-
-           {/* First Test */}
-           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>الفرض الأول</Text>
-            <TextInput
-              style={[styles.scoreInput, { borderColor: getScoreColor(subject.test1) }]}
-              keyboardType="numeric"
-              value={subject.test1?.toString() || ''}
-              onChangeText={(value) => handleScoreChange(index, 'test1', value, subjectType)}
-              editable={isSelected}
-            />
-            {isSelected && getStatusIcon(subject.test1)}
-          </View>
+         {/* Continuous Assessment */}
+         <View style={styles.inputGroup}>
+          <Text style={[
+            styles.inputLabel,
+            isOptional && !isSelected && styles.disabledText
+          ]}>التقويم المستمر</Text>
+          <TextInput
+            style={[
+              styles.scoreInput, 
+              { borderColor: isSelected ? getScoreColor(subject.assessment) : '#ccc' },
+              isOptional && !isSelected && styles.disabledInput
+            ]}
+            keyboardType="numeric"
+            value={subject.assessment?.toString() || ''}
+            onChangeText={(value) => handleScoreChange(index, 'assessment', value, subjectType)}
+            editable={isSelected}
+          />
+          {isSelected && getStatusIcon(subject.assessment)}
+        </View>
         
-          
-          {/* Exam */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>الاختبار</Text>
-            <TextInput
-              style={[styles.scoreInput, { borderColor: getScoreColor(subject.exam) }]}
-              keyboardType="numeric"
-              value={subject.exam?.toString() || ''}
-              onChangeText={(value) => handleScoreChange(index, 'exam', value, subjectType)}
-              editable={isSelected}
-            />
-            {isSelected && getStatusIcon(subject.exam)}
+        {/* Second Test with checkbox */}
+        <View style={styles.inputGroup}>
+          <View style={styles.secondTestLabelContainer}>
+            <TouchableOpacity 
+              style={[
+                styles.smallCheckbox, 
+                subject.hasTwoTests && styles.smallCheckboxChecked,
+                isOptional && !isSelected && styles.disabledCheckbox
+              ]}
+              onPress={() => isSelected && toggleSecondTest(index, subjectType)}
+              disabled={!isSelected}
+            >
+              {subject.hasTwoTests && <MaterialIcons name="check" size={12} color="white" />}
+            </TouchableOpacity>
+            <Text style={[
+              styles.inputLabel,
+              !subject.hasTwoTests && styles.disabledLabel,
+              isOptional && !isSelected && styles.disabledText
+            ]}>
+              الفرض الثاني
+            </Text>
           </View>
+          <TextInput
+            style={[
+              styles.scoreInput, 
+              { borderColor: isSelected ? getScoreColor(subject.test2) : '#ccc' },
+              !subject.hasTwoTests && styles.disabledInput,
+              isOptional && !isSelected && styles.disabledInput
+            ]}
+            keyboardType="numeric"
+            value={subject.test2?.toString() || ''}
+            onChangeText={(value) => handleScoreChange(index, 'test2', value, subjectType)}
+            editable={isSelected && subject.hasTwoTests}
+          />
+          {isSelected && subject.hasTwoTests && getStatusIcon(subject.test2)}
+        </View>
+
+         {/* First Test */}
+         <View style={styles.inputGroup}>
+          <Text style={[
+            styles.inputLabel,
+            isOptional && !isSelected && styles.disabledText
+          ]}>الفرض الأول</Text>
+          <TextInput
+            style={[
+              styles.scoreInput, 
+              { borderColor: isSelected ? getScoreColor(subject.test1) : '#ccc' },
+              isOptional && !isSelected && styles.disabledInput
+            ]}
+            keyboardType="numeric"
+            value={subject.test1?.toString() || ''}
+            onChangeText={(value) => handleScoreChange(index, 'test1', value, subjectType)}
+            editable={isSelected}
+          />
+          {isSelected && getStatusIcon(subject.test1)}
+        </View>
+      
+        
+        {/* Exam */}
+        <View style={styles.inputGroup}>
+          <Text style={[
+            styles.inputLabel,
+            isOptional && !isSelected && styles.disabledText
+          ]}>الاختبار</Text>
+          <TextInput
+            style={[
+              styles.scoreInput, 
+              { borderColor: isSelected ? getScoreColor(subject.exam) : '#ccc' },
+              isOptional && !isSelected && styles.disabledInput
+            ]}
+            keyboardType="numeric"
+            value={subject.exam?.toString() || ''}
+            onChangeText={(value) => handleScoreChange(index, 'exam', value, subjectType)}
+            editable={isSelected}
+          />
+          {isSelected && getStatusIcon(subject.exam)}
         </View>
       </View>
-    );
-  };
+    </View>
+  );
+};
 
   return (
     <ScrollView style={styles.container}>
@@ -424,6 +473,26 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 2,
   },
+  disabledCard: {
+    opacity: 1,
+    backgroundColor: '#f0f0f0',
+  },
+  disabledDetails: {
+    opacity: 1,
+  },
+  disabledText: {
+    color: '#999',
+  },
+  disabledInput: {
+    backgroundColor: '#f5f5f5',
+    borderColor: '#ddd',
+    color: '#bbb',
+  },
+  disabledCheckbox: {
+    backgroundColor: '#ddd',
+    borderColor: '#ccc',
+  },
+  
   subjectHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -447,6 +516,8 @@ const styles = StyleSheet.create({
     width: '48%',
     marginVertical: 6,
   },
+  inputExam:{  width: '100%',
+    marginVertical: 6,},
   secondTestLabelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
