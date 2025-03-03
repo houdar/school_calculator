@@ -19,8 +19,8 @@ export default function RootLayout() {
       {/* Navigation */}
       <Stack>
         <Stack.Screen name="index" options={{ title: "Niveau" }} />
-        <Stack.Screen name="middle" options={{ title: "Middle School" }} />
-        <Stack.Screen name="high" options={{ title: "High School" }} />
+        <Stack.Screen name="middle" options={{ title: "المتوسط" }} />
+        <Stack.Screen name="high" options={{ title: "الثانوي" }} />
         <Toast/>
       </Stack>
 
